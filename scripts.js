@@ -70,3 +70,64 @@ function getCookie(name) {
   return null;
 }
 
+
+function createTable(blockNumber, data) {
+  const table = document.createElement('table');
+  const rowData = data.split(',');
+  const numRows = rowData.length % 2 === 0 ? 2 : 1;
+  const block = document.getElementsByClassName(`block-${blockNumber}`)[0];
+
+  for (let i = 0; i < numRows; i++) {
+    const row = document.createElement('tr');
+    for (let j = i; j < rowData.length; j += numRows) {
+      const cell = document.createElement('td');
+      cell.textContent = rowData[j];
+      row.appendChild(cell);
+    }
+    table.appendChild(row);
+  }
+
+  
+  block.appendChild(table);
+}
+
+function handleMouseOut(event, blockNumber) {
+  const block = document.getElementsByClassName(`block-${blockNumber}`)[0];
+
+  let allowMultipleForms = blockNumber === '5' && block.querySelectorAll('form').length < 2;
+
+  const existingForm = block.querySelector('form');
+  if (!existingForm || allowMultipleForms) {
+    const form = document.createElement('form');
+    form.innerHTML = '<input type="text" placeholder="Enter comma-separated values" />' +
+                     '<button type="submit">Create Table</button>';
+
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const data = form.querySelector('input').value;
+      createTable(blockNumber, data);
+    };
+
+    event.target.parentNode.insertBefore(form, event.target.nextSibling);
+  }
+}
+
+function saveData() {
+  const tables = document.getElementsByTagName('table');
+  const dataToSave = Array.from(tables).map(table => table.innerText).join(';');
+  localStorage.setItem('savedTables', dataToSave);
+}
+
+document.querySelectorAll('img').forEach(img => {
+  img.addEventListener('mouseout', function(event) {
+    const parentBlock = event.target.closest('[class^="block-"]');
+    if (parentBlock) {
+      const match = parentBlock.className.match(/block-(\d+)/);
+      if (match) {
+        const blockNumber = match[1];
+        handleMouseOut(event, blockNumber);
+      }
+    }
+  });
+});
+
